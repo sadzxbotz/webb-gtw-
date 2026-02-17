@@ -7,18 +7,25 @@ export default async function handler(req, res) {
 
   const { username, packageRam, chatid } = req.body;
 
+  // ===== ENV =====
   const PANEL_DOMAIN = process.env.PANEL_DOMAIN;
   const ADMIN_API = process.env.ADMIN_API;
   const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
+  const EGG_ID = Number(process.env.EGG_ID);
+  const LOCATION_ID = Number(process.env.LOCATION_ID);
 
   if (!username || !packageRam || !chatid) {
     return res.status(400).json({ error: "Data tidak lengkap" });
   }
 
-  const email = username + "@kayxze.com";
+  if (!PANEL_DOMAIN || !ADMIN_API || !TELEGRAM_TOKEN || !EGG_ID || !LOCATION_ID) {
+    return res.status(500).json({ error: "Environment variable belum lengkap" });
+  }
+
+  const email = `${username}@kayxze.com`;
   const password = Math.random().toString(36).slice(-10);
 
-  // ================= RAM SYSTEM =================
+  // ===== RAM SYSTEM =====
   const ramMap = {
     "1GB": 1024,
     "2GB": 2048,
@@ -38,7 +45,7 @@ export default async function handler(req, res) {
 
   try {
 
-    // ================= CEK DUPLICATE USER =================
+    // ===== CEK DUPLICATE USER =====
     const existingUsers = await axios.get(
       `${PANEL_DOMAIN}/api/application/users?filter[username]=${username}`,
       {
@@ -53,7 +60,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Username sudah ada" });
     }
 
-    // ================= CREATE USER =================
+    // ===== CREATE USER =====
     const user = await axios.post(
       `${PANEL_DOMAIN}/api/application/users`,
       {
@@ -74,20 +81,25 @@ export default async function handler(req, res) {
 
     const userId = user.data.attributes.id;
 
-    // ================= CREATE SERVER =================
+    // ===== CREATE SERVER =====
     await axios.post(
       `${PANEL_DOMAIN}/api/application/servers`,
       {
-        name: username + " Server",
+        name: `${username} Server`,
         user: userId,
-        egg: 1,
+        egg: EGG_ID,
         docker_image: "ghcr.io/pterodactyl/yolks:nodejs_18",
         startup: "npm start",
-        environment: {},
+        environment: {
+          INST: "npm",
+          USER_UPLOAD: "0",
+          AUTO_UPDATE: "0",
+          CMD_RUN: "npm start"
+        },
         limits: {
           memory: ram,
           swap: 0,
-          disk: ram,
+          disk: ram === 0 ? 0 : ram * 2,
           io: 500,
           cpu: packageRam === "UNLIMITED" ? 200 : 100
         },
@@ -97,7 +109,7 @@ export default async function handler(req, res) {
           allocations: 1
         },
         deploy: {
-          locations: [1],
+          locations: [LOCATION_ID],
           dedicated_ip: false,
           port_range: []
         }
@@ -111,7 +123,7 @@ export default async function handler(req, res) {
       }
     );
 
-    // ================= SEND TELEGRAM =================
+    // ===== SEND TELEGRAM =====
     await axios.post(
       `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`,
       {
@@ -135,4 +147,4 @@ Login: ${PANEL_DOMAIN}`
       error: err.response?.data || err.message
     });
   }
-}
+          }
