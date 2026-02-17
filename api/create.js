@@ -7,7 +7,6 @@ export default async function handler(req, res) {
 
   const { username, packageRam, chatid } = req.body;
 
-  // ===== ENV =====
   const PANEL_DOMAIN = process.env.PANEL_DOMAIN;
   const ADMIN_API = process.env.ADMIN_API;
   const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
@@ -18,14 +17,10 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Data tidak lengkap" });
   }
 
-  if (!PANEL_DOMAIN || !ADMIN_API || !TELEGRAM_TOKEN || !EGG_ID || !LOCATION_ID) {
-    return res.status(500).json({ error: "Environment variable belum lengkap" });
-  }
-
+  const randomNumber = Math.floor(100 + Math.random() * 900);
+  const password = `${username}${randomNumber}`;
   const email = `${username}@kayxze.com`;
-  const password = Math.random().toString(36).slice(-10);
 
-  // ===== RAM SYSTEM =====
   const ramMap = {
     "1GB": 1024,
     "2GB": 2048,
@@ -45,7 +40,6 @@ export default async function handler(req, res) {
 
   try {
 
-    // ===== CEK DUPLICATE USER =====
     const existingUsers = await axios.get(
       `${PANEL_DOMAIN}/api/application/users?filter[username]=${username}`,
       {
@@ -60,7 +54,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Username sudah ada" });
     }
 
-    // ===== CREATE USER =====
     const user = await axios.post(
       `${PANEL_DOMAIN}/api/application/users`,
       {
@@ -81,7 +74,6 @@ export default async function handler(req, res) {
 
     const userId = user.data.attributes.id;
 
-    // ===== CREATE SERVER =====
     await axios.post(
       `${PANEL_DOMAIN}/api/application/servers`,
       {
@@ -123,7 +115,6 @@ export default async function handler(req, res) {
       }
     );
 
-    // ===== SEND TELEGRAM =====
     await axios.post(
       `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`,
       {
@@ -147,4 +138,4 @@ Login: ${PANEL_DOMAIN}`
       error: err.response?.data || err.message
     });
   }
-          }
+}
