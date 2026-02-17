@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Create Panel</title>
+</head>
+<body>
+
+<h2>Buat Akun Panel</h2>
+
+<input type="text" id="username" placeholder="Username"><br><br>
+
+<select id="ram">
+  <option value="1GB">1GB</option>
+  <option value="2GB">2GB</option>
+  <option value="3GB">3GB</option>
+  <option value="4GB">4GB</option>
+  <option value="5GB">5GB</option>
+  <option value="6GB">6GB</option>
+  <option value="7GB">7GB</option>
+  <option value="8GB">8GB</option>
+  <option value="UNLIMITED">Unlimited</option>
+</select><br><br>
+
+<input type="text" id="chatid" placeholder="Chat ID Telegram"><br><br>
+
+<button onclick="kirim()">Buat Sekarang</button>
+
+<script>
+async function kirim() {
+  const username = document.getElementById("username").value;
+  const packageRam = document.getElementById("ram").value;
+  const chatid = document.getElementById("chatid").value;
+
+  const res = await fetch("/api/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, packageRam, chatid })
+  });
+
+  const data = await res.json();
+  alert(JSON.stringify(data));
+}
+</script>
+
+</body>
+</html>
