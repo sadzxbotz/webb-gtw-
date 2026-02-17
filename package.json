@@ -1,6 +1,7 @@
 {
   "name": "panel-auto-telegram",
   "version": "2.0.0",
+  "type": "module",
   "dependencies": {
     "axios": "^1.6.0"
   }
