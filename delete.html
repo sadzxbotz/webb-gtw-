@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Delete Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="background:#111;color:white;font-family:sans-serif;text-align:center;padding-top:100px;">
+
+<h2>Admin Delete User</h2>
+
+<input id="username" placeholder="Username" style="padding:10px;width:250px"><br><br>
+<input id="secret" type="password" placeholder="Admin Secret" style="padding:10px;width:250px"><br><br>
+
+<button onclick="deleteUser()" style="padding:10px 20px;background:red;color:white;border:none;">
+Hapus User + Server
+</button>
+
+<p id="result"></p>
+
+<script>
+async function deleteUser() {
+  const username = document.getElementById("username").value;
+  const secret = document.getElementById("secret").value;
+
+  document.getElementById("result").innerText = "Processing...";
+
+  const res = await fetch("/api/delete", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ username, secret })
+  });
+
+  const data = await res.json();
+
+  if (data.status === "USER_DELETED_SUCCESS") {
+    document.getElementById("result").innerText = "User berhasil dihapus";
+  } else {
+    document.getElementById("result").innerText = data.error || "Error";
+  }
+}
+</script>
+
+</body>
+</html>
